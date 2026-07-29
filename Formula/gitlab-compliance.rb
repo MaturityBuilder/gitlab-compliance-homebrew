@@ -3,19 +3,14 @@ class GitlabCompliance < Formula
 
   desc "BDD compliance testing for GitLab CI/CD pipelines and project settings"
   homepage "https://maturitybuilder.github.io/gitlab-compliance/"
-  url "https://files.pythonhosted.org/packages/3b/7b/5c74a8718f1e52f7a8ee94427a495dad3d434d740ed78de5d888d51bf082/gitlab_compliance-2.3.0.tar.gz"
-  sha256 "4a1b5de064435e3d7cee416d356cd72a6c9acff3ab00a5f12749013374beda90"
+  url "https://files.pythonhosted.org/packages/60/5d/998e8e07dae2388c7f33d8164d038925ac419c86d69bd5542e4a4da702dd/gitlab_compliance-2.0.0.tar.gz"
+  sha256 "e61ab26dfa3474c4c908f3ba246ca2c7643e8e78ede28bf827a77e86006e4f7b"
   license "Apache-2.0"
-  version "2.3.0"
+  version "2.0.0"
 
   depends_on "python@3.12"
   depends_on "jq"
   depends_on "rust" => :build
-
-  resource "annotated-doc" do
-    url "https://files.pythonhosted.org/packages/3e/30/e900b21425a860e195f32e37657aa1f7c7f2b1bfb26f03ca209b90933c06/annotated_doc-0.0.5-py3-none-any.whl"
-    sha256 "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101"
-  end
 
   resource "attrs" do
     url "https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl"
@@ -73,13 +68,13 @@ class GitlabCompliance < Formula
   end
 
   resource "idna" do
-    url "https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl"
-    sha256 "7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2"
+    url "https://files.pythonhosted.org/packages/d2/23/408243171aa9aaba178d3e2559159c24c1171a641aa83b67bdd3394ead8e/idna-3.15-py3-none-any.whl"
+    sha256 "048adeaf8c2d788c40fee287673ccaa74c24ffd8dcf09ffa555a2fbb59f10ac8"
   end
 
   resource "jq" do
-    url "https://files.pythonhosted.org/packages/95/ec/3da01457bbd3c6a2fc8fea6736c0b657ffc628e3decbfb1fafcf33dc7dbe/jq-1.12.0.tar.gz"
-    sha256 "729b2d3418c8ca7dccfaa66b9fb7a98bec28474212650d27c5c04358ce26f55c"
+    url "https://files.pythonhosted.org/packages/ba/32/3eaca3ac81c804d6849da2e9f536ac200f4ad46a696890854c1f73b2f749/jq-1.8.0.tar.gz"
+    sha256 "53141eebca4bf8b4f2da5e44271a8a3694220dfd22d2b4b2cfb4816b2b6c9057"
   end
 
   resource "jsonschema" do
@@ -93,8 +88,8 @@ class GitlabCompliance < Formula
   end
 
   resource "loguru" do
-    url "https://files.pythonhosted.org/packages/03/0a/4f6fed21aa246c6b49b561ca55facacc2a44b87d65b8b92362a8e99ba202/loguru-0.7.2-py3-none-any.whl"
-    sha256 "003d71e3d3ed35f0f8984898359d65b79e5b21943f78af86aa5491210429b8eb"
+    url "https://files.pythonhosted.org/packages/71/bd/337f7a0cd2628c4c77512d78e26f93b13c327a2ddf2132001dd78c000bf4/loguru-0.7.0-py3-none-any.whl"
+    sha256 "b93aa30099fa6860d4727f1b81f8718e965bb96253fa190fab2077aaad6d15d3"
   end
 
   resource "markdown-it-py" do
@@ -163,8 +158,8 @@ class GitlabCompliance < Formula
   end
 
   resource "pytablewriter" do
-    url "https://files.pythonhosted.org/packages/21/4c/c199512f01c845dfe5a7840ab3aae6c60463b5dc2a775be72502dfd9170a/pytablewriter-1.2.1-py3-none-any.whl"
-    sha256 "e906ff7ff5151d70a5f66e0f7b75642a7f2dce8d893c265b79cc9cf6bc04ddb4"
+    url "https://files.pythonhosted.org/packages/06/74/b39b823ee7dba155b117634e62733a0dfdfe5aa100a553b435062cee2062/pytablewriter-1.2.0-py3-none-any.whl"
+    sha256 "4a30e2bb4bf5bc1069b1d2b2bc41947577c4517ab0875b23a5b194d296f543d8"
   end
 
   resource "python-dateutil" do
@@ -173,8 +168,8 @@ class GitlabCompliance < Formula
   end
 
   resource "python-gitlab" do
-    url "https://files.pythonhosted.org/packages/b1/af/1c3540dbdccb85fca0b0bbc58cdaf514d0a830d7e0302b2059a6c627b172/python_gitlab-8.4.0-py3-none-any.whl"
-    sha256 "102c747d9c107820e215cc5913627388001592a9a3ba1b43fc341a40f6943e72"
+    url "https://files.pythonhosted.org/packages/4f/9e/811edc46a15f8deb828cba7ef8aab3451dc11ca72d033f3df72a5af865d9/python_gitlab-7.0.0-py3-none-any.whl"
+    sha256 "712a6c8c5e79e7e66f6dabb25d8fe7831a6b238d4a5132f8231df6b3b890ceff"
   end
 
   resource "pytz" do
@@ -183,8 +178,8 @@ class GitlabCompliance < Formula
   end
 
   resource "PyYAML" do
-    url "https://files.pythonhosted.org/packages/05/8e/961c0007c59b8dd7729d542c61a4d537767a59645b82a0b521206e1e25c2/pyyaml-6.0.3.tar.gz"
-    sha256 "d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f"
+    url "https://files.pythonhosted.org/packages/54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz"
+    sha256 "d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"
   end
 
   resource "referencing" do
@@ -203,8 +198,8 @@ class GitlabCompliance < Formula
   end
 
   resource "rich" do
-    url "https://files.pythonhosted.org/packages/82/3b/64d4899d73f91ba49a8c18a8ff3f0ea8f1c1d75481760df8c68ef5235bf5/rich-15.0.0-py3-none-any.whl"
-    sha256 "33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb"
+    url "https://files.pythonhosted.org/packages/25/7a/b0178788f8dc6cafce37a212c99565fa1fe7872c70c6c9c1e1a372d9d88f/rich-14.2.0-py3-none-any.whl"
+    sha256 "76bc51fe2e57d2b1be1f96c524b890b816e334ab4c1e45888799bfaab0021edd"
   end
 
   resource "rpds-py" do
@@ -213,13 +208,8 @@ class GitlabCompliance < Formula
   end
 
   resource "semver" do
-    url "https://files.pythonhosted.org/packages/a6/24/4d91e05817e92e3a61c8a21e08fd0f390f5301f1c448b137c57c4bc6e543/semver-3.0.4-py3-none-any.whl"
-    sha256 "9c824d87ba7f7ab4a1890799cec8596f15c1241cb473404ea1cb0c55e4b04746"
-  end
-
-  resource "shellingham" do
-    url "https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl"
-    sha256 "7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"
+    url "https://files.pythonhosted.org/packages/9a/77/0cc7a8a3bc7e53d07e8f47f147b92b0960e902b8254859f4aee5c4d7866b/semver-3.0.2-py3-none-any.whl"
+    sha256 "b1ea4686fe70b981f85359eda33199d60c53964284e0cfb4977d243e37cf4bf4"
   end
 
   resource "six" do
@@ -248,8 +238,8 @@ class GitlabCompliance < Formula
   end
 
   resource "typer" do
-    url "https://files.pythonhosted.org/packages/40/03/26a383c9e58c213199d1aad1c3d353cfc22d4444ec6d2c0bf8ad02523843/typer-0.27.0-py3-none-any.whl"
-    sha256 "6f4b27631e47f077871b7dc30e933ec0131c1390fbe0e387ea5574b5bac9ccf1"
+    url "https://files.pythonhosted.org/packages/d9/07/8100c125307a26f03c305764f22cd995ae1878071ddf1df3588add73b53c/typer-0.10.0-py3-none-any.whl"
+    sha256 "b8a587aa06d3c5422c09c2e9935eb80b4c9de8605fd5ab702b2f92d72246ca48"
   end
 
   resource "typing_extensions" do
