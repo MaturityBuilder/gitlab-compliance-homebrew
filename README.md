@@ -28,6 +28,23 @@ Fully qualified:
 brew install MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance
 ```
 
+### Install a specific PyPI version
+
+Versioned formulae are published for each PyPI release:
+
+```bash
+brew install MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance@2.2.0
+```
+
+Available today: `@2.0.0`, `@2.0.1`, `@2.1.0`, `@2.1.1`, `@2.2.0`, `@2.3.0`.
+Unversioned `gitlab-compliance` tracks the latest PyPI release.
+
+Versioned installs are keg-only; link if you need the binary on `PATH`:
+
+```bash
+brew link --force gitlab-compliance@2.2.0
+```
+
 ### Local development (this checkout)
 
 ```bash

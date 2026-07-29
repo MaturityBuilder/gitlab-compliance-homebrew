@@ -80,14 +80,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- Formula/gitlab-compliance.rb; then
+          if git diff --quiet -- Formula/; then
             echo "Formula already matches gitlab-compliance==${VERSION} on PyPI; nothing to commit"
             exit 0
           fi
 
           BRANCH="chore/formula-${VERSION}"
           git checkout -B "${BRANCH}"
-          git add Formula/gitlab-compliance.rb
+          git add Formula/gitlab-compliance.rb "Formula/gitlab-compliance@${VERSION}.rb"
           git commit -m "chore(formula): bump gitlab-compliance to ${VERSION}"
           git push -u origin "${BRANCH}" --force-with-lease
 
