@@ -6,12 +6,11 @@ class GitlabComplianceAT200 < Formula
   url "https://files.pythonhosted.org/packages/60/5d/998e8e07dae2388c7f33d8164d038925ac419c86d69bd5542e4a4da702dd/gitlab_compliance-2.0.0.tar.gz"
   sha256 "e61ab26dfa3474c4c908f3ba246ca2c7643e8e78ede28bf827a77e86006e4f7b"
   license "Apache-2.0"
-  version "2.0.0"
   keg_only :versioned_formula
 
-  depends_on "python@3.12"
-  depends_on "jq"
   depends_on "rust" => :build
+  depends_on "jq"
+  depends_on "python@3.12"
 
   resource "attrs" do
     url "https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl"
@@ -93,14 +92,14 @@ class GitlabComplianceAT200 < Formula
     sha256 "b93aa30099fa6860d4727f1b81f8718e965bb96253fa190fab2077aaad6d15d3"
   end
 
+  resource "markdown-analysis" do
+    url "https://files.pythonhosted.org/packages/d3/94/50890298581013aa7db6c494308f459d47dfbb9555fe087e44e4b5e729ba/markdown_analysis-0.1.5-py3-none-any.whl"
+    sha256 "0b1058bf44d65f1d508bc53e46113631a98219fa040e6a3221d46d776b7728db"
+  end
+
   resource "markdown-it-py" do
     url "https://files.pythonhosted.org/packages/b3/81/4da04ced5a082363ecfa159c010d200ecbd959ae410c10c0264a38cac0f5/markdown_it_py-4.2.0-py3-none-any.whl"
     sha256 "9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a"
-  end
-
-  resource "markdown_analysis" do
-    url "https://files.pythonhosted.org/packages/d3/94/50890298581013aa7db6c494308f459d47dfbb9555fe087e44e4b5e729ba/markdown_analysis-0.1.5-py3-none-any.whl"
-    sha256 "0b1058bf44d65f1d508bc53e46113631a98219fa040e6a3221d46d776b7728db"
   end
 
   resource "markdownify" do
@@ -138,7 +137,7 @@ class GitlabComplianceAT200 < Formula
     sha256 "20f0925a46f06602485ac90d751764d0697fd8455aaa97489ba8953a4b66de32"
   end
 
-  resource "parse_type" do
+  resource "parse-type" do
     url "https://files.pythonhosted.org/packages/85/8d/eef3d8cdccc32abdd91b1286884c99b8c3a6d3b135affcc2a7a0f383bb32/parse_type-0.6.6-py2.py3-none-any.whl"
     sha256 "3ca79bbe71e170dfccc8ec6c341edfd1c2a0fc1e5cfd18330f93af938de2348c"
   end
@@ -243,7 +242,7 @@ class GitlabComplianceAT200 < Formula
     sha256 "b8a587aa06d3c5422c09c2e9935eb80b4c9de8605fd5ab702b2f92d72246ca48"
   end
 
-  resource "typing_extensions" do
+  resource "typing-extensions" do
     url "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl"
     sha256 "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
   end

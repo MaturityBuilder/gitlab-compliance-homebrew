@@ -113,7 +113,9 @@ for line in requirements_path.read_text(encoding="utf-8").splitlines():
     if name.startswith("-e ") or " @ " in line:
         continue
     url, sha = choose_artifact(name, ver)
-    resources.append((name, ver, url, sha))
+    # Homebrew expects PyPI-style names (hyphens), not import/distribution underscores.
+    resource_name = name.replace("_", "-")
+    resources.append((resource_name, ver, url, sha))
 
 resources.sort(key=lambda item: item[0].lower())
 
@@ -132,12 +134,14 @@ needs_rust = any(
     for name, _ver, url, _sha in resources
 )
 
-depends = ['  depends_on "python@3.12"', '  depends_on "jq"']
+depends = ['  depends_on "jq"', '  depends_on "python@3.12"']
 if needs_rust:
-    depends.append('  depends_on "rust" => :build')
+    depends.insert(0, '  depends_on "rust" => :build')
 
 nl = "\n"
 def render(class_name: str, *, versioned: bool) -> str:
+    # Version is inferred from the PyPI sdist URL (Homebrew audit rejects a
+    # redundant explicit version line when it matches the URL).
     keg = '  keg_only :versioned_formula\n' if versioned else ''
     return f"""class {class_name} < Formula
   include Language::Python::Virtualenv
@@ -147,7 +151,6 @@ def render(class_name: str, *, versioned: bool) -> str:
   url "{main_url}"
   sha256 "{main_sha}"
   license "Apache-2.0"
-  version "{version}"
 {keg}
 {nl.join(depends)}
 
