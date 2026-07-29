@@ -102,7 +102,7 @@ jobs:
               echo "## Test plan"
               echo "- [ ] Confirm formula version is ${VERSION}"
               echo "- [ ] Confirm url/sha256 match the PyPI sdist"
-              echo "- [ ] brew install MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance"
+              echo "- [ ] brew install MaturityBuilder/gitlab-compliance/gitlab-compliance"
               echo "- [ ] gitlab-compliance --help"
             } >"${RUNNER_TEMP}/pr-body.md"
             gh pr create \

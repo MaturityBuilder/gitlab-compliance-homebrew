@@ -1,23 +1,18 @@
-# gitlab-compliance Homebrew tap
+# homebrew-gitlab-compliance
 
 Homebrew tap for
 [`gitlab-compliance`](https://pypi.org/project/gitlab-compliance/) — BDD
 compliance testing for GitLab CI/CD by
 [MaturityBuilder](https://maturitybuilder.github.io/gitlab-compliance/).
 
-This repository only packages the published PyPI release. Application source
+This repository only packages published PyPI releases. Application source
 lives in
 [MaturityBuilder/gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance).
 
 ## Install
 
-Homebrew only installs formulae from a **tap**, not from a local file path
-(e.g. `./Formula/gitlab-compliance.rb` will be rejected).
-
-This repo is not named `homebrew-*`, so tap it with the clone URL:
-
 ```bash
-brew tap MaturityBuilder/gitlab-compliance-homebrew https://github.com/MaturityBuilder/gitlab-compliance-homebrew
+brew tap MaturityBuilder/gitlab-compliance
 brew install gitlab-compliance
 gitlab-compliance --help
 ```
@@ -25,15 +20,13 @@ gitlab-compliance --help
 Fully qualified:
 
 ```bash
-brew install MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance
+brew install MaturityBuilder/gitlab-compliance/gitlab-compliance
 ```
 
 ### Install a specific PyPI version
 
-Versioned formulae are published for each PyPI release:
-
 ```bash
-brew install MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance@2.2.0
+brew install MaturityBuilder/gitlab-compliance/gitlab-compliance@2.2.0
 ```
 
 Available today: `@2.0.0`, `@2.0.1`, `@2.1.0`, `@2.1.1`, `@2.2.0`, `@2.3.0`.
@@ -48,9 +41,9 @@ brew link --force gitlab-compliance@2.2.0
 ### Local development (this checkout)
 
 ```bash
-brew untap MaturityBuilder/gitlab-compliance-homebrew 2>/dev/null || true
-brew tap MaturityBuilder/gitlab-compliance-homebrew "$(pwd)"
-brew reinstall --build-from-source MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance
+brew untap MaturityBuilder/gitlab-compliance 2>/dev/null || true
+brew tap MaturityBuilder/gitlab-compliance "$(pwd)"
+brew reinstall --build-from-source MaturityBuilder/gitlab-compliance/gitlab-compliance
 ```
 
 ## Upgrade / uninstall
@@ -59,7 +52,7 @@ brew reinstall --build-from-source MaturityBuilder/gitlab-compliance-homebrew/gi
 brew update
 brew upgrade gitlab-compliance
 brew uninstall gitlab-compliance
-brew untap MaturityBuilder/gitlab-compliance-homebrew
+brew untap MaturityBuilder/gitlab-compliance
 ```
 
 ## How versions are updated
@@ -74,7 +67,8 @@ workflow dispatches `gitlab-compliance-released` to this repository. The
 
 1. Waits until the PyPI sdist is fetchable
 2. Runs [`scripts/update-formula.sh`](scripts/update-formula.sh)
-3. Opens a PR that refreshes `version`, `url`, `sha256`, and dependency pins
+3. Opens a PR that refreshes `gitlab-compliance.rb` and
+   `gitlab-compliance@X.Y.Z.rb`
 
 You can also run the workflow manually (Actions → Update formula) for any
 version already on PyPI, or locally:
