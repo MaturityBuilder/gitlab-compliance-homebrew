@@ -3,10 +3,10 @@ class GitlabCompliance < Formula
 
   desc "BDD compliance testing for GitLab CI/CD pipelines and project settings"
   homepage "https://maturitybuilder.github.io/gitlab-compliance/"
-  url "https://files.pythonhosted.org/packages/c8/de/c6062d7c933ce065d9f7f0776daddbce8e31204371c90c4ca25d0ce66106/gitlab_compliance-2.1.1.tar.gz"
-  sha256 "ae8598c8404cf61a1709696e644f5e55261f92b5c5787b27546ee95551f44a0e"
+  url "https://files.pythonhosted.org/packages/b6/87/e5f5b5d8e8b03a827fe9ae33509408b47b577f29c43a8e2dba6e7d9abe8c/gitlab_compliance-2.2.0.tar.gz"
+  sha256 "66df9462ed5b2a4d13668f1e48e3d1032ec6cf9f436e8a91e651d5510b385492"
   license "Apache-2.0"
-  version "2.1.1"
+  version "2.2.0"
 
   depends_on "python@3.12"
   depends_on "jq"
