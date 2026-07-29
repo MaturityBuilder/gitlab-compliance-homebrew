@@ -47,17 +47,20 @@ brew untap MaturityBuilder/gitlab-compliance-homebrew
 
 ## How versions are updated
 
+**Source of truth is PyPI.** GitHub tags without a PyPI package are ignored.
+
 When
 [gitlab-compliance](https://github.com/MaturityBuilder/gitlab-compliance)
-publishes a new PyPI release, its release workflow dispatches
-`gitlab-compliance-released` to this repository. The
+creates a `v*` tag and **successfully publishes to PyPI**, its release
+workflow dispatches `gitlab-compliance-released` to this repository. The
 [Update formula](.github/workflows/update-formula.yml) workflow then:
 
-1. Waits for the PyPI sdist
+1. Waits until the PyPI sdist is fetchable
 2. Runs [`scripts/update-formula.sh`](scripts/update-formula.sh)
-3. Commits refreshed `url` / `sha256` / dependency resource pins
+3. Opens a PR that refreshes `version`, `url`, `sha256`, and dependency pins
 
-You can also run the workflow manually (Actions → Update formula) or locally:
+You can also run the workflow manually (Actions → Update formula) for any
+version already on PyPI, or locally:
 
 ```bash
 ./scripts/update-formula.sh 2.3.0
