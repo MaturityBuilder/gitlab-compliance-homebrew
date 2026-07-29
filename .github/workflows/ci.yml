@@ -41,11 +41,17 @@ jobs:
           from pathlib import Path
           import re
 
+          def version_from_formula(text: str) -> str:
+              match = re.search(
+                  r'url "https://files\.pythonhosted\.org/[^"]+/gitlab_compliance-([^/"]+)\.tar\.gz"',
+                  text,
+              )
+              if not match:
+                  raise SystemExit("Could not parse version from PyPI sdist URL")
+              return match.group(1)
+
           latest = Path("Formula/gitlab-compliance.rb").read_text(encoding="utf-8")
-          version_match = re.search(r'(?m)^  version "([^"]+)"\s*$', latest)
-          if not version_match:
-              raise SystemExit("Latest formula missing version line")
-          version = version_match.group(1)
+          version = version_from_formula(latest)
           versioned = Path(f"Formula/gitlab-compliance@{version}.rb")
           if not versioned.is_file():
               raise SystemExit(f"Missing versioned formula for latest: {versioned}")
@@ -64,10 +70,9 @@ jobs:
                   raise SystemExit(f"{path}: expected class {expected}, found {found.group(1) if found else None}")
               if "keg_only :versioned_formula" not in text:
                   raise SystemExit(f"{path}: missing keg_only :versioned_formula")
-              if f'version "{ver}"' not in text:
-                  raise SystemExit(f"{path}: version line does not match filename")
-              if 'url "https://files.pythonhosted.org/' not in text:
-                  raise SystemExit(f"{path}: missing PyPI url")
+              url_ver = version_from_formula(text)
+              if url_ver != ver:
+                  raise SystemExit(f"{path}: URL version {url_ver} does not match filename {ver}")
               if "sha256 " not in text:
                   raise SystemExit(f"{path}: missing sha256")
 
@@ -97,6 +102,4 @@ jobs:
       - name: Audit formulae
         run: |
           set -euo pipefail
-          # Skip style cops that fire on generated PyPI resource names;
-          # still catch broken Ruby, missing deps, and checksum problems.
           brew audit --tap=MaturityBuilder/gitlab-compliance --skip-style

@@ -92,8 +92,9 @@ jobs:
           ./scripts/update-formula.sh "${VERSION}"
           test -f "Formula/gitlab-compliance.rb"
           test -f "Formula/gitlab-compliance@${VERSION}.rb"
-          grep -q "version \"${VERSION}\"" Formula/gitlab-compliance.rb
-          grep -q "version \"${VERSION}\"" "Formula/gitlab-compliance@${VERSION}.rb"
+          grep -q "gitlab_compliance-${VERSION}.tar.gz" Formula/gitlab-compliance.rb
+          grep -q "gitlab_compliance-${VERSION}.tar.gz" "Formula/gitlab-compliance@${VERSION}.rb"
+
           if git diff --quiet -- Formula/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "- Formula files: already up to date" >> "$GITHUB_STEP_SUMMARY"
@@ -155,8 +156,9 @@ jobs:
             echo
             echo "## Test plan"
             echo
-            echo "- [ ] Formula \`version\` is \`${VERSION}\`"
+            echo "- [ ] Sdist URL targets \`gitlab_compliance-${VERSION}.tar.gz\`"
             echo "- [ ] \`url\` / \`sha256\` match the PyPI sdist"
+
             echo "- [ ] CI audit passes"
             echo "- [ ] \`brew install MaturityBuilder/gitlab-compliance/gitlab-compliance\`"
             echo "- [ ] \`gitlab-compliance --help\`"

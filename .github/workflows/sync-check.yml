@@ -26,9 +26,12 @@ jobs:
           import re
           from pathlib import Path
           text = Path("Formula/gitlab-compliance.rb").read_text(encoding="utf-8")
-          match = re.search(r'(?m)^  version "([^"]+)"\s*$', text)
+          match = re.search(
+              r'url "https://files\.pythonhosted\.org/[^"]+/gitlab_compliance-([^/"]+)\.tar\.gz"',
+              text,
+          )
           if not match:
-              raise SystemExit("Could not parse Formula/gitlab-compliance.rb version")
+              raise SystemExit("Could not parse version from Formula/gitlab-compliance.rb URL")
           print(match.group(1))
           PY
           )"
