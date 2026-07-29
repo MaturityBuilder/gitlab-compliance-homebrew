@@ -11,6 +11,9 @@ lives in
 
 ## Install
 
+Homebrew only installs formulae from a **tap**, not from a local file path
+(e.g. `./Formula/gitlab-compliance.rb` will be rejected).
+
 This repo is not named `homebrew-*`, so tap it with the clone URL:
 
 ```bash
@@ -23,6 +26,14 @@ Fully qualified:
 
 ```bash
 brew install MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance
+```
+
+### Local development (this checkout)
+
+```bash
+brew untap MaturityBuilder/gitlab-compliance-homebrew 2>/dev/null || true
+brew tap MaturityBuilder/gitlab-compliance-homebrew "$(pwd)"
+brew reinstall --build-from-source MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance
 ```
 
 ## Upgrade / uninstall
