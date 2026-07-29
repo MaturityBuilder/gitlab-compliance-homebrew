@@ -11,6 +11,15 @@ on:
         description: "PyPI version of gitlab-compliance (e.g. 2.3.0). Leave empty for latest on PyPI."
         required: false
         type: string
+      open_pr:
+        description: "Open or update a pull request (disable to only regenerate locally in the job)."
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: update-formula-${{ github.event.client_payload.version || inputs.version || 'latest' }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -19,9 +28,12 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - name: Set up Python 3.12
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -49,19 +61,22 @@ jobs:
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Using PyPI version ${VERSION}"
+          echo "## Target version" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`gitlab-compliance==${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Wait for PyPI sdist
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 30); do
+          for attempt in $(seq 1 36); do
             if curl -fsS "https://pypi.org/pypi/gitlab-compliance/${VERSION}/json" \
               | python3 -c "import json,sys; urls=json.load(sys.stdin)['urls']; sys.exit(0 if any(u['packagetype']=='sdist' for u in urls) else 1)"; then
               echo "PyPI sdist for gitlab-compliance==${VERSION} is available"
+              echo "- PyPI sdist: available" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
-            echo "Attempt ${attempt}/30: sdist not visible yet; sleeping 10s"
+            echo "Attempt ${attempt}/36: sdist not visible yet; sleeping 10s"
             sleep 10
           done
           echo "Timed out waiting for PyPI sdist gitlab-compliance==${VERSION}" >&2
@@ -69,9 +84,30 @@ jobs:
           exit 1
 
       - name: Refresh formula pins
-        run: ./scripts/update-formula.sh "${{ steps.version.outputs.version }}"
+        id: refresh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          ./scripts/update-formula.sh "${VERSION}"
+          test -f "Formula/gitlab-compliance.rb"
+          test -f "Formula/gitlab-compliance@${VERSION}.rb"
+          grep -q "version \"${VERSION}\"" Formula/gitlab-compliance.rb
+          grep -q "version \"${VERSION}\"" "Formula/gitlab-compliance@${VERSION}.rb"
+          if git diff --quiet -- Formula/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "- Formula files: already up to date" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "- Formula files: regenerated" >> "$GITHUB_STEP_SUMMARY"
+            git --no-pager diff --stat -- Formula/ | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
 
-      - name: Open pull request
+      - name: Open or update pull request
+        if: >-
+          steps.refresh.outputs.changed == 'true' &&
+          (github.event_name != 'workflow_dispatch' || inputs.open_pr)
+        id: pr
         env:
           VERSION: ${{ steps.version.outputs.version }}
           GH_TOKEN: ${{ github.token }}
@@ -80,34 +116,64 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- Formula/; then
-            echo "Formula already matches gitlab-compliance==${VERSION} on PyPI; nothing to commit"
+          BRANCH="chore/formula-${VERSION}"
+          git fetch origin main
+          git checkout -B "${BRANCH}" origin/main
+          ./scripts/update-formula.sh "${VERSION}"
+
+          git add Formula/gitlab-compliance.rb "Formula/gitlab-compliance@${VERSION}.rb"
+          if git diff --cached --quiet; then
+            echo "Nothing staged after regenerating on ${BRANCH}"
+            echo "pr_url=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          BRANCH="chore/formula-${VERSION}"
-          git checkout -B "${BRANCH}"
-          git add Formula/gitlab-compliance.rb "Formula/gitlab-compliance@${VERSION}.rb"
           git commit -m "chore(formula): bump gitlab-compliance to ${VERSION}"
           git push -u origin "${BRANCH}" --force-with-lease
 
-          EXISTING="$(gh pr list --head "${BRANCH}" --json number --jq 'length')"
-          if [[ "${EXISTING}" == "0" ]]; then
-            {
-              echo "## Summary"
-              echo "Regenerates Formula/gitlab-compliance.rb from the published PyPI package gitlab-compliance==${VERSION}."
-              echo
-              echo "Triggered after a gitlab-compliance v* tag once publish-pypi succeeded (or via manual workflow_dispatch)."
-              echo
-              echo "## Test plan"
-              echo "- [ ] Confirm formula version is ${VERSION}"
-              echo "- [ ] Confirm url/sha256 match the PyPI sdist"
-              echo "- [ ] brew install MaturityBuilder/gitlab-compliance/gitlab-compliance"
-              echo "- [ ] gitlab-compliance --help"
-            } >"${RUNNER_TEMP}/pr-body.md"
-            gh pr create \
+          # Keep a moving tag for this PyPI version (points at the formula commit).
+          git tag -f "v${VERSION}"
+          git push -f origin "refs/tags/v${VERSION}"
+
+          {
+            echo "## Summary"
+            echo
+            echo "Regenerates Homebrew formulae from the published PyPI package \`gitlab-compliance==${VERSION}\`:"
+            echo
+            echo "- \`Formula/gitlab-compliance.rb\` (latest)"
+            echo "- \`Formula/gitlab-compliance@${VERSION}.rb\` (versioned / keg-only)"
+            echo
+            echo "Triggered after a \`gitlab-compliance\` \`v*\` tag once \`publish-pypi\` succeeded, or via manual workflow_dispatch."
+            echo
+            echo "## Install"
+            echo
+            echo '```bash'
+            echo "brew tap MaturityBuilder/gitlab-compliance"
+            echo "brew install gitlab-compliance"
+            echo "# or: brew install MaturityBuilder/gitlab-compliance/gitlab-compliance@${VERSION}"
+            echo '```'
+            echo
+            echo "## Test plan"
+            echo
+            echo "- [ ] Formula \`version\` is \`${VERSION}\`"
+            echo "- [ ] \`url\` / \`sha256\` match the PyPI sdist"
+            echo "- [ ] CI audit passes"
+            echo "- [ ] \`brew install MaturityBuilder/gitlab-compliance/gitlab-compliance\`"
+            echo "- [ ] \`gitlab-compliance --help\`"
+          } >"${RUNNER_TEMP}/pr-body.md"
+
+          PR_NUMBER="$(gh pr list --head "${BRANCH}" --json number --jq '.[0].number // empty')"
+          if [[ -z "${PR_NUMBER}" ]]; then
+            PR_URL="$(gh pr create \
+              --base main \
+              --head "${BRANCH}" \
               --title "chore(formula): bump gitlab-compliance to ${VERSION}" \
-              --body-file "${RUNNER_TEMP}/pr-body.md"
+              --body-file "${RUNNER_TEMP}/pr-body.md")"
           else
-            echo "Pull request for ${BRANCH} already exists"
+            gh pr edit "${PR_NUMBER}" --body-file "${RUNNER_TEMP}/pr-body.md" || true
+            PR_URL="$(gh pr view "${PR_NUMBER}" --json url --jq .url)"
           fi
+
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          echo "- Pull request: ${PR_URL}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tag: \`v${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"

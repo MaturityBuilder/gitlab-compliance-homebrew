@@ -1,0 +1,91 @@
+name: Sync check
+
+# Fail (and optionally open an issue) when PyPI latest is ahead of the tap formula.
+on:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Compare PyPI latest to formula
+        id: compare
+        run: |
+          set -euo pipefail
+          FORMULA_VERSION="$(python3 - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path("Formula/gitlab-compliance.rb").read_text(encoding="utf-8")
+          match = re.search(r'(?m)^  version "([^"]+)"\s*$', text)
+          if not match:
+              raise SystemExit("Could not parse Formula/gitlab-compliance.rb version")
+          print(match.group(1))
+          PY
+          )"
+          PYPI_VERSION="$(curl -fsS https://pypi.org/pypi/gitlab-compliance/json \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["info"]["version"])')"
+
+          echo "formula_version=${FORMULA_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "pypi_version=${PYPI_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Formula: ${FORMULA_VERSION}"
+          echo "PyPI:    ${PYPI_VERSION}"
+          echo "## Sync check" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Formula: \`${FORMULA_VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- PyPI: \`${PYPI_VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "${FORMULA_VERSION}" == "${PYPI_VERSION}" ]]; then
+            echo "in_sync=true" >> "$GITHUB_OUTPUT"
+            echo "- Status: in sync" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "in_sync=false" >> "$GITHUB_OUTPUT"
+            echo "- Status: **out of sync**" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Open or update drift issue
+        if: steps.compare.outputs.in_sync == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORMULA_VERSION: ${{ steps.compare.outputs.formula_version }}
+          PYPI_VERSION: ${{ steps.compare.outputs.pypi_version }}
+        run: |
+          set -euo pipefail
+          TITLE="Formula behind PyPI (${FORMULA_VERSION} → ${PYPI_VERSION})"
+          BODY="$(cat <<EOF
+          The tap formula is behind the latest PyPI release.
+
+          | Source | Version |
+          | --- | --- |
+          | Formula/gitlab-compliance.rb | \`${FORMULA_VERSION}\` |
+          | PyPI gitlab-compliance | \`${PYPI_VERSION}\` |
+
+          ### Fix
+
+          1. Confirm \`gitlab-compliance\` published \`${PYPI_VERSION}\` to PyPI.
+          2. Run **Update formula** (workflow_dispatch) with version \`${PYPI_VERSION}\`, or wait for the release dispatch.
+          3. Merge the formula PR.
+
+          EOF
+          )"
+
+          EXISTING="$(gh issue list --search "Formula behind PyPI in:title state:open" --json number,title --jq '.[0].number // empty')"
+          if [[ -z "${EXISTING}" ]]; then
+            gh issue create --title "${TITLE}" --body "${BODY}"
+          else
+            gh issue edit "${EXISTING}" --title "${TITLE}" --body "${BODY}"
+          fi
+
+      - name: Fail when out of sync
+        if: steps.compare.outputs.in_sync == 'false'
+        run: |
+          echo "Tap formula ${{ steps.compare.outputs.formula_version }} != PyPI ${{ steps.compare.outputs.pypi_version }}" >&2
+          exit 1

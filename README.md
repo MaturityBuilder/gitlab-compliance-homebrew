@@ -67,8 +67,9 @@ workflow dispatches `gitlab-compliance-released` to this repository. The
 
 1. Waits until the PyPI sdist is fetchable
 2. Runs [`scripts/update-formula.sh`](scripts/update-formula.sh)
-3. Opens a PR that refreshes `gitlab-compliance.rb` and
+3. Opens/updates a PR that refreshes `gitlab-compliance.rb` and
    `gitlab-compliance@X.Y.Z.rb`
+4. Moves tag `vX.Y.Z` to the formula commit
 
 You can also run the workflow manually (Actions → Update formula) for any
 version already on PyPI, or locally:
@@ -76,6 +77,14 @@ version already on PyPI, or locally:
 ```bash
 ./scripts/update-formula.sh 2.3.0
 ```
+
+## Maintenance workflows
+
+| Workflow | Trigger | Purpose |
+| --- | --- | --- |
+| [Update formula](.github/workflows/update-formula.yml) | `repository_dispatch` / manual | Regenerate formulae from PyPI and open a PR |
+| [CI](.github/workflows/ci.yml) | PR / push to `main` | Validate formula structure + `brew audit` |
+| [Sync check](.github/workflows/sync-check.yml) | Weekly / manual | Fail and open an issue if the tap lags PyPI |
 
 ## License
 

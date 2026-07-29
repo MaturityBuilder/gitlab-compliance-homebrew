@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - "Formula/**"
+      - "scripts/**"
+      - ".github/workflows/ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "Formula/**"
+      - "scripts/**"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  formula-structure:
+    name: Formula structure
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Validate formula layout
+        run: |
+          set -euo pipefail
+          test -f Formula/gitlab-compliance.rb
+          test -x scripts/update-formula.sh
+
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          latest = Path("Formula/gitlab-compliance.rb").read_text(encoding="utf-8")
+          version_match = re.search(r'(?m)^  version "([^"]+)"\s*$', latest)
+          if not version_match:
+              raise SystemExit("Latest formula missing version line")
+          version = version_match.group(1)
+          versioned = Path(f"Formula/gitlab-compliance@{version}.rb")
+          if not versioned.is_file():
+              raise SystemExit(f"Missing versioned formula for latest: {versioned}")
+
+          class_re = re.compile(r"(?m)^class ([A-Za-z0-9]+) < Formula\s*$")
+          latest_class = class_re.search(latest)
+          if not latest_class or latest_class.group(1) != "GitlabCompliance":
+              raise SystemExit("Latest formula class must be GitlabCompliance")
+
+          for path in sorted(Path("Formula").glob("gitlab-compliance@*.rb")):
+              text = path.read_text(encoding="utf-8")
+              ver = path.name.removeprefix("gitlab-compliance@").removesuffix(".rb")
+              expected = "GitlabComplianceAT" + ver.replace(".", "")
+              found = class_re.search(text)
+              if not found or found.group(1) != expected:
+                  raise SystemExit(f"{path}: expected class {expected}, found {found.group(1) if found else None}")
+              if "keg_only :versioned_formula" not in text:
+                  raise SystemExit(f"{path}: missing keg_only :versioned_formula")
+              if f'version "{ver}"' not in text:
+                  raise SystemExit(f"{path}: version line does not match filename")
+              if 'url "https://files.pythonhosted.org/' not in text:
+                  raise SystemExit(f"{path}: missing PyPI url")
+              if "sha256 " not in text:
+                  raise SystemExit(f"{path}: missing sha256")
+
+          print(f"OK: latest={version}, versioned_formulae={len(list(Path('Formula').glob('gitlab-compliance@*.rb')))}")
+          PY
+
+  audit:
+    name: brew audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@9af03b7ae3f9e2ae5c174f659d5c3909f7e7dbac # 2026.07.29.1
+
+      - name: Tap this repository
+        run: |
+          set -euo pipefail
+          # Install the checkout as the MaturityBuilder/gitlab-compliance tap.
+          brew untap MaturityBuilder/gitlab-compliance 2>/dev/null || true
+          brew tap MaturityBuilder/gitlab-compliance "${GITHUB_WORKSPACE}"
+          brew tap-info MaturityBuilder/gitlab-compliance
+
+      - name: Audit formulae
+        run: |
+          set -euo pipefail
+          # Skip style cops that fire on generated PyPI resource names;
+          # still catch broken Ruby, missing deps, and checksum problems.
+          brew audit --tap=MaturityBuilder/gitlab-compliance --skip-style
