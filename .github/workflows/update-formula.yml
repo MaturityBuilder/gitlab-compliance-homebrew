@@ -93,24 +93,19 @@ jobs:
 
           EXISTING="$(gh pr list --head "${BRANCH}" --json number --jq 'length')"
           if [[ "${EXISTING}" == "0" ]]; then
-            gh pr create \
-              --title "chore(formula): bump gitlab-compliance to ${VERSION}" \
-              --body "$(cat <<EOF
-## Summary
+            BODY="## Summary
+Regenerates Formula/gitlab-compliance.rb from the published PyPI package gitlab-compliance==${VERSION}.
 
-Regenerates \`Formula/gitlab-compliance.rb\` from the published PyPI package \`gitlab-compliance==${VERSION}\`.
-
-Triggered after a \`gitlab-compliance\` \`v*\` tag once \`publish-pypi\` succeeded (or via manual workflow_dispatch).
+Triggered after a gitlab-compliance v* tag once publish-pypi succeeded (or via manual workflow_dispatch).
 
 ## Test plan
-
-- [ ] Confirm formula \`version\` is \`${VERSION}\`
-- [ ] Confirm \`url\` / \`sha256\` match the PyPI sdist
-- [ ] \`brew install MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance\`
-- [ ] \`gitlab-compliance --help\`
-
-EOF
-)"
+- [ ] Confirm formula version is ${VERSION}
+- [ ] Confirm url/sha256 match the PyPI sdist
+- [ ] brew install MaturityBuilder/gitlab-compliance-homebrew/gitlab-compliance
+- [ ] gitlab-compliance --help"
+            gh pr create \
+              --title "chore(formula): bump gitlab-compliance to ${VERSION}" \
+              --body "${BODY}"
           else
             echo "Pull request for ${BRANCH} already exists"
           fi
