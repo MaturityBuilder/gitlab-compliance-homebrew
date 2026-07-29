@@ -1,4 +1,4 @@
-class GitlabCompliance < Formula
+class GitlabComplianceAT240 < Formula
   include Language::Python::Virtualenv
 
   desc "BDD compliance testing for GitLab CI/CD pipelines and project settings"
@@ -7,6 +7,7 @@ class GitlabCompliance < Formula
   sha256 "4f7dc6f76a6015f14e471d36ce3927f7a1dc0a2e731446665daaa877ce351a09"
   license "Apache-2.0"
   version "2.4.0"
+  keg_only :versioned_formula
 
   depends_on "python@3.12"
   depends_on "jq"
