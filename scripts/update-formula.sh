@@ -137,7 +137,9 @@ if needs_rust:
     depends.append('  depends_on "rust" => :build')
 
 nl = "\n"
-formula = f"""class GitlabCompliance < Formula
+def render(class_name: str, *, versioned: bool) -> str:
+    keg = '  keg_only :versioned_formula\n' if versioned else ''
+    return f"""class {class_name} < Formula
   include Language::Python::Virtualenv
 
   desc "BDD compliance testing for GitLab CI/CD pipelines and project settings"
@@ -146,7 +148,7 @@ formula = f"""class GitlabCompliance < Formula
   sha256 "{main_sha}"
   license "Apache-2.0"
   version "{version}"
-
+{keg}
 {nl.join(depends)}
 
 {(nl * 2).join(resource_blocks)}
@@ -161,9 +163,20 @@ formula = f"""class GitlabCompliance < Formula
 end
 """
 
+
 formula_path.parent.mkdir(parents=True, exist_ok=True)
-formula_path.write_text(formula, encoding="utf-8")
+formula_path.write_text(render("GitlabCompliance", versioned=False), encoding="utf-8")
 print(f"Wrote {formula_path} ({len(resources)} resources)")
+
+# Also keep an installable versioned formula: gitlab-compliance@X.Y.Z
+at_digits = version.replace(".", "")
+versioned_path = formula_path.parent / f"gitlab-compliance@{version}.rb"
+versioned_path.write_text(
+    render(f"GitlabComplianceAT{at_digits}", versioned=True),
+    encoding="utf-8",
+)
+print(f"Wrote {versioned_path}")
 PY
 
 echo "Formula updated: ${FORMULA_PATH}"
+echo "Versioned formula updated: Formula/gitlab-compliance@${VERSION}.rb"
