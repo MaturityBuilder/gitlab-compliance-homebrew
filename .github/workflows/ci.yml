@@ -91,15 +91,21 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@9af03b7ae3f9e2ae5c174f659d5c3909f7e7dbac # 2026.07.29.1
 
-      - name: Tap this repository
+      - name: Install formulae into Homebrew tap path
         run: |
           set -euo pipefail
-          # Install the checkout as the MaturityBuilder/gitlab-compliance tap.
+          # Copy into the canonical tap directory. Do not `brew tap` the
+          # workspace itself — that symlinks the checkout and breaks
+          # Homebrew/actions/setup-homebrew post-job cleanup.
+          TAP_PATH="$(brew --repository)/Library/Taps/maturitybuilder/homebrew-gitlab-compliance"
           brew untap MaturityBuilder/gitlab-compliance 2>/dev/null || true
-          brew tap MaturityBuilder/gitlab-compliance "${GITHUB_WORKSPACE}"
+          rm -rf "${TAP_PATH}"
+          mkdir -p "${TAP_PATH}/Formula"
+          cp Formula/*.rb "${TAP_PATH}/Formula/"
+          git -C "${TAP_PATH}" init --quiet
+          git -C "${TAP_PATH}" config user.name "github-actions[bot]"
+          git -C "${TAP_PATH}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "${TAP_PATH}" add Formula
+          git -C "${TAP_PATH}" commit --quiet -m "ci: stage formulae for audit"
           brew tap-info MaturityBuilder/gitlab-compliance
-
-      - name: Audit formulae
-        run: |
-          set -euo pipefail
           brew audit --tap=MaturityBuilder/gitlab-compliance --skip-style
