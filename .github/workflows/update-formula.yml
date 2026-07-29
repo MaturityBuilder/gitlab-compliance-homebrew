@@ -1,0 +1,78 @@
+name: Update formula
+
+on:
+  repository_dispatch:
+    types: [gitlab-compliance-released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "gitlab-compliance version on PyPI (e.g. 2.3.0). Leave empty for latest."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Resolve version
+        id: version
+        env:
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${DISPATCH_VERSION:-}" ]]; then
+            VERSION="${DISPATCH_VERSION#v}"
+          elif [[ -n "${INPUT_VERSION:-}" ]]; then
+            VERSION="${INPUT_VERSION#v}"
+          else
+            VERSION="$(curl -fsS https://pypi.org/pypi/gitlab-compliance/json | python3 -c 'import json,sys; print(json.load(sys.stdin)["info"]["version"])')"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Using version ${VERSION}"
+
+      - name: Wait for PyPI sdist
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if curl -fsS "https://pypi.org/pypi/gitlab-compliance/${VERSION}/json" \
+              | python3 -c "import json,sys; urls=json.load(sys.stdin)['urls']; sys.exit(0 if any(u['packagetype']=='sdist' for u in urls) else 1)"; then
+              echo "PyPI sdist for gitlab-compliance==${VERSION} is available"
+              exit 0
+            fi
+            echo "Attempt ${attempt}/30: sdist not visible yet; sleeping 10s"
+            sleep 10
+          done
+          echo "Timed out waiting for PyPI sdist gitlab-compliance==${VERSION}" >&2
+          exit 1
+
+      - name: Refresh formula pins
+        run: ./scripts/update-formula.sh "${{ steps.version.outputs.version }}"
+
+      - name: Commit and push
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- Formula/gitlab-compliance.rb; then
+            echo "Formula already matches gitlab-compliance==${VERSION}; nothing to commit"
+            exit 0
+          fi
+          git add Formula/gitlab-compliance.rb
+          git commit -m "chore(formula): bump gitlab-compliance to ${VERSION}"
+          git push origin HEAD
